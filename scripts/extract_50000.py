@@ -17,3 +17,4 @@ with open(output_file, "w") as out_handle:
             break
 
 print("Saved", count, "reads")
+
