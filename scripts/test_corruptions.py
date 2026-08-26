@@ -1,62 +1,244 @@
-import random
+from Bio import SeqIO
 
-def substitute_base(sequence):
+# ============================================================
+# SETTINGS
+# ============================================================
 
-    bases = ["A", "T", "G", "C"]
+ORIGINAL_FASTQ = "data/sars_50k.fastq"
 
-    sequence = list(sequence)
-
-    position = random.randint(0, len(sequence)-1)
-
-    original = sequence[position]
-
-    choices = [b for b in bases if b != original]
-
-    sequence[position] = random.choice(choices)
-
-    return "".join(sequence)
+CORRUPTED_FILES = {
+    "substitution": "data/sars_50k_substitution.fastq",
+    "deletion": "data/sars_50k_deletion.fastq",
+    "insertion": "data/sars_50k_insertion.fastq",
+    "N-masking": "data/sars_50k_nmasking.fastq",
+    "low-complexity": "data/sars_50k_low_complexity.fastq",
+    "adapter insertion": "data/sars_50k_adapter_insertion.fastq",
+}
 
 
-test_read = "ATGCGTACGTAG"
+# ============================================================
+# LOAD ORIGINAL READS
+# ============================================================
 
-corrupted = substitute_base(test_read)
+original_reads = list(SeqIO.parse(ORIGINAL_FASTQ, "fastq"))
 
-print("Original :", test_read)
-print("Corrupted:", corrupted)
+print("=" * 70)
+print("DeepFASTQ Corruption Validation")
+print("=" * 70)
 
-def insert_base(sequence):
+print(f"Original reads: {len(original_reads)}")
 
-    bases = ["A", "T", "G", "C"]
 
-    position = random.randint(0, len(sequence))
+# ============================================================
+# FUNCTION TO TEST ONE CORRUPTION
+# ============================================================
 
-    new_base = random.choice(bases)
+def test_corruption(name, corrupted_file):
 
-    sequence = list(sequence)
+    corrupted_reads = list(SeqIO.parse(corrupted_file, "fastq"))
 
-    sequence.insert(position, new_base)
+    print("\n" + "-" * 70)
+    print(f"CORRUPTION: {name}")
+    print("-" * 70)
 
-    return "".join(sequence)
-test_read = "ATGCGTACGTAG"
+    print(f"Original reads : {len(original_reads)}")
+    print(f"Corrupted reads: {len(corrupted_reads)}")
 
-print("Original    :", test_read)
-print("Insertion   :", insert_base(test_read))
-def delete_base(sequence):
+    if len(original_reads) != len(corrupted_reads):
+        print("WARNING: Number of reads does not match!")
+        return
 
-    sequence = list(sequence)
+    reads_changed = 0
+    reads_same_length = 0
+    reads_longer = 0
+    reads_shorter = 0
 
-    position = random.randint(0, len(sequence)-1)
+    total_substitutions = 0
+    total_inserted_bases = 0
+    total_deleted_bases = 0
+    total_N_bases = 0
 
-    sequence.pop(position)
+    # --------------------------------------------------------
+    # Compare every original read with corrupted read
+    # --------------------------------------------------------
 
-    return "".join(sequence)
-print("Deletion    :", delete_base(test_read))
-test_read = "ATGCGTACGTAG"
+    for original, corrupted in zip(original_reads, corrupted_reads):
 
-deleted = delete_base(test_read)
+        original_seq = str(original.seq)
+        corrupted_seq = str(corrupted.seq)
 
-print("Original :", test_read)
-print("Length   :", len(test_read))
+        original_length = len(original_seq)
+        corrupted_length = len(corrupted_seq)
 
-print("Deleted  :", deleted)
-print("Length   :", len(deleted))
+        # Check whether read changed
+        if original_seq != corrupted_seq:
+            reads_changed += 1
+
+        # Length comparison
+        if corrupted_length == original_length:
+            reads_same_length += 1
+
+        elif corrupted_length > original_length:
+            reads_longer += 1
+            total_inserted_bases += corrupted_length - original_length
+
+        elif corrupted_length < original_length:
+            reads_shorter += 1
+            total_deleted_bases += original_length - corrupted_length
+
+        # ----------------------------------------------------
+        # N-masking
+        # ----------------------------------------------------
+
+        if name == "N-masking":
+            total_N_bases += corrupted_seq.count("N")
+
+        # ----------------------------------------------------
+        # Substitution
+        # ----------------------------------------------------
+
+        if name == "substitution":
+
+            # Substitution does NOT change read length.
+            # Compare bases at the same positions.
+
+            for a, b in zip(original_seq, corrupted_seq):
+
+                if a != b:
+                    total_substitutions += 1
+
+
+    # ========================================================
+    # RESULTS
+    # ========================================================
+
+    print(f"Reads changed       : {reads_changed}")
+    print(f"Reads unchanged     : {len(original_reads) - reads_changed}")
+
+    print(f"Reads same length   : {reads_same_length}")
+    print(f"Reads longer        : {reads_longer}")
+    print(f"Reads shorter       : {reads_shorter}")
+
+    # --------------------------------------------------------
+    # Substitution results
+    # --------------------------------------------------------
+
+    if name == "substitution":
+
+        print()
+        print(f"Total substituted bases: {total_substitutions}")
+
+        print(
+            f"Average substitutions/read: "
+            f"{total_substitutions / len(original_reads):.2f}"
+        )
+
+        print("Expected: read length should remain unchanged.")
+
+    # --------------------------------------------------------
+    # Insertion results
+    # --------------------------------------------------------
+
+    elif name == "insertion":
+
+        print()
+        print(f"Total inserted bases: {total_inserted_bases}")
+
+        print(
+            f"Average inserted bases/read: "
+            f"{total_inserted_bases / len(original_reads):.2f}"
+        )
+
+        print("Expected: corrupted reads should be longer.")
+
+    # --------------------------------------------------------
+    # Deletion results
+    # --------------------------------------------------------
+
+    elif name == "deletion":
+
+        print()
+        print(f"Total deleted bases: {total_deleted_bases}")
+
+        print(
+            f"Average deleted bases/read: "
+            f"{total_deleted_bases / len(original_reads):.2f}"
+        )
+
+        print("Expected: corrupted reads should be shorter.")
+
+    # --------------------------------------------------------
+    # N-masking results
+    # --------------------------------------------------------
+
+    elif name == "N-masking":
+
+        print()
+        print(f"Total N bases: {total_N_bases}")
+
+        print(
+            f"Average N bases/read: "
+            f"{total_N_bases / len(original_reads):.2f}"
+        )
+
+        print("Expected: read length should remain unchanged.")
+
+    # --------------------------------------------------------
+    # Adapter insertion
+    # --------------------------------------------------------
+
+    elif name == "adapter insertion":
+
+        print()
+        print(f"Total inserted bases: {total_inserted_bases}")
+
+        print(
+            f"Average inserted bases/read: "
+            f"{total_inserted_bases / len(original_reads):.2f}"
+        )
+
+        print("Expected: corrupted reads should be longer.")
+
+    # --------------------------------------------------------
+    # Low-complexity injection
+    # --------------------------------------------------------
+
+    elif name == "low-complexity":
+
+        print()
+        print(f"Total inserted bases: {total_inserted_bases}")
+
+        print(
+            f"Average inserted bases/read: "
+            f"{total_inserted_bases / len(original_reads):.2f}"
+        )
+
+        print(
+            "Expected: reads should be longer if "
+            "low-complexity sequence was inserted."
+        )
+
+
+# ============================================================
+# RUN ALL TESTS
+# ============================================================
+
+for corruption_name, corrupted_file in CORRUPTED_FILES.items():
+
+    try:
+        test_corruption(corruption_name, corrupted_file)
+
+    except FileNotFoundError:
+        print("\n" + "-" * 70)
+        print(f"SKIPPED: {corruption_name}")
+        print(f"File not found: {corrupted_file}")
+        print("-" * 70)
+
+
+# ============================================================
+# FINISHED
+# ============================================================
+
+print("\n" + "=" * 70)
+print("VALIDATION COMPLETE")
+print("=" * 70)
