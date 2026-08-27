@@ -1,2 +1,17 @@
-# Ignore large FASTQ files by default
-# data/*.fastq
+# Large FASTQ files
+data/*.fastq
+
+# BWA index files
+reference/*.amb
+reference/*.ann
+reference/*.bwt
+reference/*.pac
+reference/*.sa
+
+# Alignment output files
+results/*.sam
+results/*.bam
+results/*.bai
+
+# Editor temporary files
+*.swp
