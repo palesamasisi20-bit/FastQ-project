@@ -1,0 +1,9 @@
+dataset,error_rate_percent,change_from_original_pp
+sars_50k_adapter_insertion,5.4832,4.4427
+sars_50k_corrupted,1.5045,0.464
+sars_50k_deletion,11.0035,9.963
+sars_50k_insertion,9.4361,8.3956
+sars_50k_low_complexity,9.8944,8.8539
+sars_50k_nmasking,10.7152,9.6747
+sars_50k_original,1.0405,0.0
+sars_50k_substitution,10.0969,9.0564

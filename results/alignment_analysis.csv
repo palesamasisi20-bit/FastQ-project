@@ -1,0 +1,9 @@
+dataset,mapping_rate,mapping_rate_change,mapping_rate_drop
+sars_50k_deletion,93.35,-5.82,5.82
+sars_50k_substitution,94.28,-4.89,4.89
+sars_50k_nmasking,94.82,-4.35,4.35
+sars_50k_insertion,94.92,-4.25,4.25
+sars_50k_adapter_insertion,98.71,-0.46,0.46
+sars_50k_low_complexity,98.82,-0.35,0.35
+sars_50k_corrupted,99.07,-0.1,0.1
+sars_50k_original,99.17,0.0,0.0
