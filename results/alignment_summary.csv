@@ -1,0 +1,9 @@
+dataset,total,primary,supplementary,mapped,mapping_rate
+sars_50k_adapter_insertion,50261,50000,261,49613,98.71
+sars_50k_corrupted,50247,50000,247,49779,99.07
+sars_50k_deletion,50353,50000,353,47006,93.35
+sars_50k_insertion,50368,50000,368,47808,94.92
+sars_50k_low_complexity,50299,50000,299,49706,98.82
+sars_50k_nmasking,50114,50000,114,47517,94.82
+sars_50k_original,50251,50000,251,49833,99.17
+sars_50k_substitution,50180,50000,180,47308,94.28
