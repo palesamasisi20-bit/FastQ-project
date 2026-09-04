@@ -6,11 +6,16 @@ output_file = "results/alignment_baseline_comparison.png"
 
 df = pd.read_csv(input_file)
 
-# Remove original dataset from corruption comparison
-df_plot = df[df["dataset"] != "sars_50k_original"].copy()
+# Remove the original and generic corrupted datasets from this plot
+df_plot = df[
+    (df["dataset"] != "sars_50k_original") &
+    (df["dataset"] != "sars_50k_corrupted")
+].copy()
 
-# Clean dataset names
-df_plot["dataset"] = df_plot["dataset"].str.replace("sars_50k_", "", regex=False)
+# Clean dataset names for the x-axis
+df_plot["dataset"] = df_plot["dataset"].str.replace(
+    "sars_50k_", "", regex=False
+)
 
 x = range(len(df_plot))
 width = 0.35
@@ -35,7 +40,12 @@ ax.set_xlabel("Corruption type")
 ax.set_ylabel("Change (percentage points)")
 ax.set_title("Alignment Impact of FASTQ Corruptions")
 ax.set_xticks(list(x))
-ax.set_xticklabels(df_plot["dataset"], rotation=35, ha="right")
+ax.set_xticklabels(
+    df_plot["dataset"],
+    rotation=35,
+    ha="right"
+)
+
 ax.legend()
 
 plt.tight_layout()
