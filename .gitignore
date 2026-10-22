@@ -15,3 +15,7 @@ results/*.bai
 
 # Editor temporary files
 *.swp
+
+# Large trained model files
+results/baselines/model_results/*.joblib
+results/baselines/test_embeddings.npz
