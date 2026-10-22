@@ -19,3 +19,4 @@ results/*.bai
 # Large trained model files
 results/baselines/model_results/*.joblib
 results/baselines/test_embeddings.npz
+scripts/__pycache__/
